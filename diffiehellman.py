@@ -10,9 +10,11 @@ gx = pow(g, x)
 y = random.getrandbits(8)
 gy = pow(g, y)
 
+#print gx
+#print gy
+
 Ka = pow(gy, x) % q
 Kb = pow(gx, y) % q
-print Kb
 print (Ka == Kb)
 print hashlib.md5(str(Kb)).hexdigest()
 print hashlib.md5(str(Ka)).hexdigest()
