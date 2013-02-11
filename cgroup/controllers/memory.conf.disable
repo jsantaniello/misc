@@ -1,0 +1,7 @@
+# Name of this file should be subsystem.conf. For example:
+# to control cpu this file shoule be cpu.conf and lines below
+# should be the default paramters and values specific to this
+# controller. For example cpu uses "shares" while memory uses
+# "limit_in_bytes" among other things. No blank lines because
+# we grep for values.
+limit_in_bytes=256M
