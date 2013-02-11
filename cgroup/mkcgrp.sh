@@ -42,7 +42,7 @@ echo -n > /etc/cgrules.conf
 
 # Get list of group confs
 ls groups/* > /dev/null 2>&1 || { echo Empty groups dir. Exiting.; exit 0; }
-for f in groups/*; do
+for f in groups/*.conf; do
 	g="$(basename $f .conf)"
 	u=$g
 	# Create group dir in mounted subsystems that the conf file
