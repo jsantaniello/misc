@@ -18,6 +18,7 @@ All users get by deault (catchall) cpu.shares=2 and memory.limit_in_bytes=245M.
 
 This means that if there are only 2 active users, and both are trying to use as much cpu as possible, both will be garanteed at least 50%. On multicore systems, they would each get 100% of their own core, but this holds true as the cores are used up, so to keep it simple we pretend with have a single core.
 
-If we introduce a 3rd user, and give this user a cpu.shares=3, and all 3 of these users tyr for maximum cpu, user 3 who has 2x the shares, would get 50%, and the other 2 users would split the remaining 50% and get 25% each. If we add another shares=2 user, they have a combined share og 6, while the other user has 4, and thus that user would get 40% and the other 3 would split the remaining 60% or 20% each.
+If we introduce a 3rd user, and give this user a cpu.shares=4, and all 3 of these users tyr for maximum cpu, user 3 who has 2x the shares, would get 50%, and the other 2 users would split the remaining 50% and get 25% each. If we add another shares=2 user, they have a combined share og 6, while the other user has 4, and thus that user would get 40% and the other 3 would split the remaining 60% or 20% each.
 
 Memory limits are limits on the total memory that group can use.
+
