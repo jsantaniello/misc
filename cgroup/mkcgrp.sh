@@ -9,19 +9,21 @@ cd "$(dirname ${BASH_SOURCE[0]})"
 # potential empty ENABLED variable.
 [ "x$ENABLED" = "xtrue" ] || { echo Not ENABLED in conf.; exit 0; }
 
-# Mount the cgroup temp fs
 CG=/sys/fs/cgroup
+# umount cgroups
+cgroups-umount
+
+# Mount the cgroup temp fs
 if grep -q {$CG} /proc/mounts ; then
 	echo $CG already mounted. Continuing...
 else
 	mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup $CG
 fi
-# Clear any cgroups
-cgclear
+
 # Setup the controllers. Desired controllers should be in the
 # controllers dir with controller_name.conf and contain the
 # defaults for that subsystem.
-for f in controllers/*; do
+for f in controllers/*.conf; do
 	c="$(basename $f .conf)"
 	mkdir -p $CG/$c
 	mount -n -t cgroup -o $c $c $CG/$c
