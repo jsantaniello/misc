@@ -45,25 +45,33 @@ ls groups/* > /dev/null 2>&1 || { echo Empty groups dir. Exiting.; exit 0; }
 for f in groups/*.conf; do
 	g="$(basename $f .conf)"
 	u=$g
+	PROCESSED_SUBSYSTEM=""
 	# Create group dir in mounted subsystems that the conf file
 	# has an entry for. Iterate over conf and make if subsys is mounted.
 	for LINE in `grep -v "#" $f`; do
-		echo -n $u >> /etc/cgrules.conf
 		# Get the conf values for this group and subsys
 		read SUBSYS_NAME VALUE <<<$(echo $LINE|tr -s "=" " ")
-		# FIXME the following won't work with subsys with 2x .!
 		read SUBSYS NAME <<<$(echo $SUBSYS_NAME|tr -s "." " ")
-		# add to cgrules.con
-		echo " "$SUBSYS $g/ >> /etc/cgrules.conf
-		u="%"
 		# Now check if SUBSYS is mounted
-		if (lssubsys | grep -qw $SUBSYS); then
+		if (lssubsys -m | grep -qw $SUBSYS); then
 			# make the group in this subsystem
 			SUBSYS_DIR=`lssubsys $SUBSYS -m|cut -d " " -f2`
 			mkdir -p $SUBSYS_DIR/$g
 			# set values
 			echo $VALUE > $SUBSYS_DIR/$g/$SUBSYS.$NAME
+			# add to cgrules.conf if we don't already have a
+			# line for this controller. Some controllers have
+			# multiple subsystem values and we could be here
+			# several times in the enclosing loop.
+			# use groupname for first line
+			if [ "$PROCESSED_SUBSYS" != $SUBSYS ]; then
+				echo -n $u >> /etc/cgrules.conf
+				# and % for subsequent.
+				u="%" # Needed because of silly cgrules.conf limitations
+				echo " "$SUBSYS $g/ >> /etc/cgrules.conf
+			fi
 		fi
+		PROCESSED_SUBSYS=$SUBSYS
 	done
 	echo >> /etc/cgrules.conf
 done
