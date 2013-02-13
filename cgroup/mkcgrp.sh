@@ -11,24 +11,26 @@ cd "$(dirname ${BASH_SOURCE[0]})"
 
 CG=/sys/fs/cgroup
 # umount cgroups
-cgroups-umount
+#cgroups-umount
 
 # Mount the cgroup temp fs
-if grep -q {$CG} /proc/mounts ; then
+if grep -q "^cgroup $CG" /proc/mounts ; then
 	echo $CG already mounted. Continuing...
 else
 	mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup $CG
 fi
-
 # Setup the controllers. Desired controllers should be in the
 # controllers dir with controller_name.conf and contain the
 # defaults for that subsystem.
 for f in controllers/*.conf; do
 	c="$(basename $f .conf)"
-	mkdir -p $CG/$c
-	mount -n -t cgroup -o $c $c $CG/$c
+	# See if this controller is already mounted
+	if [ `lssubsys -m $c | wc -l` -lt 1 ]; then
+		mkdir -p $CG/$c
+		mount -n -t cgroup -o $c $c $CG/$c
+	fi
 	# Make a "default" group to be used as cgrules.conf "catchall"
-	mkdir $CG/$c/catchall
+	mkdir -p $CG/$c/catchall
 	# Push in defaults
 	for LINE in `grep -v "#" $f`; do
 		read NAME VALUE <<<$(echo $LINE|tr -s "=" " ")
@@ -41,7 +43,7 @@ echo -n > /etc/cgrules.conf
 
 
 # Get list of group confs
-ls groups/* > /dev/null 2>&1 || { echo Empty groups dir. Exiting.; exit 0; }
+#ls groups/* > /dev/null 2>&1 || { echo Empty groups dir. Exiting.; exit 0; }
 for f in groups/*.conf; do
 	g="$(basename $f .conf)"
 	u=$g
@@ -76,9 +78,12 @@ for f in groups/*.conf; do
 	echo >> /etc/cgrules.conf
 done
 
+# Add our cgrules.footer
+[ -f /etc/cgrules.conf.footer ] && cat /etc/cgrules.conf.footer >> /etc/cgrules.conf
+
 # Add catchall to cgrules.conf
 echo "*" "*" catchall/ >> /etc/cgrules.conf
 
-# This is ugly...
+# This is ugly... but we don't have to deal with PID and SIGUSR2.
 killall cgrulesengd; cgrulesengd
 
