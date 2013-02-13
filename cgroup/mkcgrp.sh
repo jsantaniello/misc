@@ -98,5 +98,5 @@ done
 echo "*" "*" catchall/ >> /etc/cgrules.conf
 
 # This is ugly... but we don't have to deal with PID and flaky SIGUSR2.
-killall cgrulesengd; cgrulesengd
+killall cgrulesengd > /dev/null 2>&1; cgrulesengd
 
