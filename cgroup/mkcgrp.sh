@@ -10,15 +10,12 @@ cd "$(dirname ${BASH_SOURCE[0]})"
 [ "x$ENABLED" = "xtrue" ] || { echo Not ENABLED in conf.; exit 0; }
 
 CG=/sys/fs/cgroup
-# umount cgroups
-#cgroups-umount
 
 # Mount the cgroup temp fs
-if grep -q "^cgroup $CG" /proc/mounts ; then
-	echo $CG already mounted. Continuing...
-else
+if ! grep -q "^cgroup $CG" /proc/mounts ; then
 	mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup $CG
 fi
+
 # Setup the controllers. Desired controllers should be in the
 # controllers dir with controller_name.conf and contain the
 # defaults for that subsystem.
@@ -38,12 +35,19 @@ for f in controllers/*.conf; do
 	done
 done
 
+# Now remove disabled controllers
+for f in controllers/*.disabled; do
+	c="$(basename $f .disabled)"
+	# Just umount it no goofing around...
+	umount $CG/$c > /dev/null 2>&1
+	# This is a little scary considering who this script runs as:
+	rm -r $CG/$c > /dev/null 2>&1
+done
+
 # Initialize the /etc/cgrules.conf
 echo -n > /etc/cgrules.conf
 
-
 # Get list of group confs
-#ls groups/* > /dev/null 2>&1 || { echo Empty groups dir. Exiting.; exit 0; }
 for f in groups/*.conf; do
 	g="$(basename $f .conf)"
 	u=$g
@@ -78,12 +82,20 @@ for f in groups/*.conf; do
 	echo >> /etc/cgrules.conf
 done
 
+# Remove disabled groups
+for f in groups/*.disabled; do
+	g="$(basename $f .disabled)"
+	for LINE in `lscgroup | grep :/$g$`; do
+		cgdelete $LINE
+	done
+done
+
 # Add our cgrules.footer
 [ -f /etc/cgrules.conf.footer ] && cat /etc/cgrules.conf.footer >> /etc/cgrules.conf
 
 # Add catchall to cgrules.conf
 echo "*" "*" catchall/ >> /etc/cgrules.conf
 
-# This is ugly... but we don't have to deal with PID and SIGUSR2.
+# This is ugly... but we don't have to deal with PID and flaky SIGUSR2.
 killall cgrulesengd; cgrulesengd
 
