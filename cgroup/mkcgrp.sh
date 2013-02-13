@@ -1,13 +1,14 @@
 #!/bin/bash
+# This script is used to mount and dismount cgroup controllers and groups
+# based on config files found in controllers and groups with .conf files.
+# It does not interfere with other cgroup mounts and should play nice with
+# other things potentially going on. If any permanent changes are desired
+# for /etc/cgrules.conf, they should be made in /etc/cgrules.conf.footer
+# because cgrules.conf is overwritten with data gleaned from the .conf
+# files used by this script. Joseph Santaniello <js@syse.no> 2013-02-13
+
 # cd to where we want to be so subdirs are where we expect.
 cd "$(dirname ${BASH_SOURCE[0]})"
-
-# Load up the config file
-[ -f tornado.conf ] && . tornado.conf
-
-# Check if ENABLED is true. x is placeholder for
-# potential empty ENABLED variable.
-[ "x$ENABLED" = "xtrue" ] || { echo Not ENABLED in conf.; exit 0; }
 
 CG=/sys/fs/cgroup
 
