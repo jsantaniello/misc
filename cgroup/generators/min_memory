@@ -1,0 +1,7 @@
+#!/bin/bash
+BASEUNIT=512
+SUFFIX=M
+
+#QTY=`echo $1\*$BASEUNIT | bc`
+#echo memory.limit_in_bytes=$QTY$SUFFIX
+exit 0

@@ -1,0 +1,5 @@
+#!/bin/bash
+BASEUNIT=1024
+
+QTY=`echo $1\*$BASEUNIT | bc`
+echo cpu.shares=$QTY
