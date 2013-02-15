@@ -23,7 +23,7 @@ rem() {
 # Make our dynamic case-switch
 cat >$TMPSCRIPT <<EOF
 while [ \$# -gt 0 ]; do
-	case \$1 in
+        case \$1 in
 	--name) NAME=\$2; shift;;
 EOF
 for g in generators/*; do
@@ -61,7 +61,7 @@ fi
 for g in $LIST; do
 	generators/$g >> $TMPGROUP
 done
-cat $TMPGROUP
+#cat $TMPGROUP
 echo mv $TMPGROUP groups/$NAME.conf
 rm $TMPGROUP
 exit 0
