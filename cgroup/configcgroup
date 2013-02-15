@@ -1,0 +1,67 @@
+#!/bin/bash
+cd "$(dirname ${BASH_SOURCE[0]})"
+usage() {
+	echo "Usage: $0 --name cgroupname [--optional_param X]"
+}
+[[ -n "$1" ]] || { usage $0; exit 1; }
+opts=`ls generators | awk '{printf $1 ":,"}'|sed 's/,$//'`
+TMPSCRIPT=$(mktemp)
+TMPGROUP=$(mktemp)
+LIST=`ls generators`
+
+
+# This function removes processed generators from the list of
+# default generators which will be run after the optional parameters
+# are processed.
+rem() {
+	# Hack because I'm confused about backtick escaping...
+	s="s/$1//g"
+	LIST=`echo $LIST | sed $s`
+}
+
+
+# Make our dynamic case-switch
+cat >$TMPSCRIPT <<EOF
+while [ \$# -gt 0 ]; do
+	case \$1 in
+	--name) NAME=\$2; shift;;
+EOF
+for g in generators/*; do
+	echo "        --`basename $g`) $g \"\$2\" ; shift " >> $TMPSCRIPT
+	echo "            rem `basename $g`;;" >> $TMPSCRIPT
+done
+cat >>$TMPSCRIPT <<EOF
+	(--) shift; break;;
+	(*) break;;
+	esac
+	shift
+done
+EOF
+
+# Get options. Should match the generator scripts so example options
+# might be --max_cpu 2 which would mean apply factor 2 to base config.
+# If a generator option is not specified, the generator is run with 
+# default options as defined in that generator script.
+options=$(getopt -u -o h -l name:,$opts -- "$@")
+
+set -- $options
+# Fire up the dynamicly constructed case-switch and dump it into
+# the temp cgroup file.
+. $TMPSCRIPT > $TMPGROUP
+rm $TMPSCRIPT
+
+# Make sure we got our required name param
+if [[ -z $NAME ]]; then
+	usage $0
+	rm $TMPGROUP
+	exit 1
+fi
+
+# Now run the generators not specified as arguments
+for g in $LIST; do
+	generators/$g >> $TMPGROUP
+done
+cat $TMPGROUP
+echo mv $TMPGROUP groups/$NAME.conf
+rm $TMPGROUP
+exit 0

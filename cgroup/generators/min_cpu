@@ -1,5 +1,5 @@
 #!/bin/bash
 BASEUNIT=1024
-FACTOR={$1-1}
+FACTOR=${1-1}
 QTY=`echo $FACTOR\*$BASEUNIT | bc`
 echo cpu.shares=$QTY
