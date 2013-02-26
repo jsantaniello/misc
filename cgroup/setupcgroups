@@ -35,15 +35,20 @@ for f in controllers/*.conf; do
 		echo $VALUE > $CG/$c/catchall/$c.$NAME
 	done
 done
-
+#exit 0
 # Now remove disabled controllers
-for f in controllers/*.disabled; do
-	c="$(basename $f .disabled)"
-	# Just umount it no goofing around...
-	umount $CG/$c > /dev/null 2>&1
-	# This is a little scary considering who this script runs as:
-	rm -r $CG/$c > /dev/null 2>&1
-done
+#for f in controllers/*.disabled; do
+#	c="$(basename $f .disabled)"
+#	# Just umount it no goofing around...
+#	umount $CG/$c > /dev/null 2>&1
+#	# This is a little scary considering who this script runs as:
+#	rm -r $CG/$c > /dev/null 2>&1
+#done
+
+#exit 0
+
+# Clean out the cgrules generated confs
+rm cgrules/*
 
 # Initialize the /etc/cgrules.conf
 echo -n > /etc/cgrules.conf
@@ -83,13 +88,13 @@ for f in groups/*.conf; do
 	echo >> /etc/cgrules.conf
 done
 
-# Remove disabled groups
-for f in groups/*.disabled; do
-	g="$(basename $f .disabled)"
-	for LINE in `lscgroup | grep :/$g$`; do
-		cgdelete $LINE
-	done
-done
+## Remove disabled groups
+#for f in groups/*.disabled; do
+#	g="$(basename $f .disabled)"
+#	for LINE in `lscgroup | grep :/$g$`; do
+#		cgdelete $LINE
+#	done
+#done
 
 # Add our cgrules.footer
 [ -f /etc/cgrules.conf.footer ] && cat /etc/cgrules.conf.footer >> /etc/cgrules.conf
