@@ -4,10 +4,11 @@ usage() {
 	echo "Usage: $0 --name cgroupname [--optional_param X]"
 }
 [[ -n "$1" ]] || { usage $0; exit 1; }
-opts=`ls generators | awk '{printf $1 ":,"}'|sed 's/,$//'`
+
+LIST=`ls generators`
+opts=`echo $LIST | awk '{printf $1 ":,"}'|sed 's/,$//'`
 TMPSCRIPT=$(mktemp)
 TMPGROUP=$(mktemp)
-LIST=`ls generators`
 
 
 # This function removes processed generators from the list of
@@ -62,6 +63,6 @@ for g in $LIST; do
 	generators/$g >> $TMPGROUP
 done
 #cat $TMPGROUP
-echo mv $TMPGROUP groups/$NAME.conf
+mv $TMPGROUP groups/$NAME.conf
 rm $TMPGROUP
 exit 0
