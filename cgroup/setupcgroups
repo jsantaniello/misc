@@ -10,6 +10,9 @@
 # cd to where we want to be so subdirs are where we expect.
 cd "$(dirname ${BASH_SOURCE[0]})"
 
+# Source our common functions
+. common.sh
+
 CG=/sys/fs/cgroup
 
 # Mount the cgroup temp fs
@@ -48,59 +51,21 @@ done
 #exit 0
 
 # Clean out the cgrules generated confs
-rm cgrules/*
-
-# Initialize the /etc/cgrules.conf
-echo -n > /etc/cgrules.conf
+rm cgrules/*  > /dev/null 2>&1
 
 # Get list of group confs
 for f in groups/*.conf; do
-	g="$(basename $f .conf)"
-	u=$g
-	PROCESSED_SUBSYSTEM=""
-	# Create group dir in mounted subsystems that the conf file
-	# has an entry for. Iterate over conf and make if subsys is mounted.
-	for LINE in `grep -v "#" $f`; do
-		# Get the conf values for this group and subsys
-		read SUBSYS_NAME VALUE <<<$(echo $LINE|tr -s "=" " ")
-		read SUBSYS NAME <<<$(echo $SUBSYS_NAME|tr -s "." " ")
-		# Now check if SUBSYS is mounted
-		if (lssubsys -m | grep -qw $SUBSYS); then
-			# make the group in this subsystem
-			SUBSYS_DIR=`lssubsys $SUBSYS -m|cut -d " " -f2`
-			mkdir -p $SUBSYS_DIR/$g
-			# set values
-			echo $VALUE > $SUBSYS_DIR/$g/$SUBSYS.$NAME
-			# add to cgrules.conf if we don't already have a
-			# line for this controller. Some controllers have
-			# multiple subsystem values and we could be here
-			# several times in the enclosing loop.
-			# use groupname for first line
-			if [ "$PROCESSED_SUBSYS" != $SUBSYS ]; then
-				echo -n $u >> /etc/cgrules.conf
-				# and % for subsequent.
-				u="%" # Needed because of silly cgrules.conf limitations
-				echo " "$SUBSYS $g/ >> /etc/cgrules.conf
-			fi
-		fi
-		PROCESSED_SUBSYS=$SUBSYS
-	done
-	echo >> /etc/cgrules.conf
+	# Run it through our sorced create function
+	create $f
 done
 
-## Remove disabled groups
-#for f in groups/*.disabled; do
-#	g="$(basename $f .disabled)"
-#	for LINE in `lscgroup | grep :/$g$`; do
-#		cgdelete $LINE
-#	done
-#done
+# Remove disabled groups
+for f in groups/*.disabled; do
+	delete $f
+done
 
-# Add our cgrules.footer
-[ -f /etc/cgrules.conf.footer ] && cat /etc/cgrules.conf.footer >> /etc/cgrules.conf
-
-# Add catchall to cgrules.conf
-echo "*" "*" catchall/ >> /etc/cgrules.conf
+# And make a new cgrules.conf
+construct_cgrules
 
 # This is ugly... but we don't have to deal with PID and flaky SIGUSR2.
 killall cgrulesengd > /dev/null 2>&1; cgrulesengd

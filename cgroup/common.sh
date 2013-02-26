@@ -48,7 +48,7 @@ function chk_subsys {
 
 function delete {
 	g="$(basename $1 .conf)"
-	rm cgrules/$g
+	rm cgrules/$g > /dev/null 2>&1
 	for LINE in `lscgroup | grep :/$g$`; do
 		cgdelete $LINE
 	done
@@ -63,5 +63,4 @@ function construct_cgrules {
 
 	# Add catchall to cgrules.conf
 	echo "*" "*" catchall/ >> /etc/cgrules.conf
-
 }

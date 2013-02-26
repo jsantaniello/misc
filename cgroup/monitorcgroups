@@ -5,14 +5,13 @@
 
 # cd to where we want to be so subdirs are where we expect.
 cd "$(dirname ${BASH_SOURCE[0]})"
-
+#FIXME add some sort of lock to ensure only on instance is running
 # Source our common functions
 . common.sh
 
 CG=/sys/fs/cgroup
 
 # Check that there is at least one mounted subsystem
-
 chk_subsys
 
 # Enter the loop that waits for changes to files in the groups directory
