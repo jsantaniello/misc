@@ -9,7 +9,7 @@ cd "$(dirname ${BASH_SOURCE[0]})"
 CG=/sys/fs/cgroup
 
 # Check that there is at least one mounted subsystem
-function chk_subsys() {
+function chk_subsys {
 	if [ `lssubsys -m $c | wc -l` -lt 1 ]; then
 		echo "No mounted cgroup subsystems found!" | logger -s -t CGROUP
 		return 1
@@ -18,21 +18,61 @@ function chk_subsys() {
 chk_subsys
 #echo $?
 
+function create {
+	g="$(basename $1 .conf)"
+	# Initialize the cgrules.conf for this group
+	echo -n > cgrules/$g
+	u=$g
+	PROCESSED_SUBSYSTEM=""
+	# Create group dir in mounted subsystems that the conf file
+	# has an entry for. Iterate over conf and make if subsys is mounted.
+	for LINE in `cat $1 | sort | grep -v "#"`; do
+		# Get the conf values for this group and subsys
+		read SUBSYS_NAME VALUE <<<$(echo $LINE|tr -s "=" " ")
+		read SUBSYS NAME <<<$(echo $SUBSYS_NAME|tr -s "." " ")
+		# Now check if SUBSYS is mounted
+		if (lssubsys -m | grep -qw $SUBSYS); then
+			# make the group in this subsystem
+			SUBSYS_DIR=`lssubsys $SUBSYS -m|cut -d " " -f2`
+			echo mkdir -p $SUBSYS_DIR/$g
+			# set values
+			echo echo $VALUE X $SUBSYS_DIR/$g/$SUBSYS.$NAME
+			# add to cgrules.conf if we don't already have a
+			# line for this controller. Some controllers have
+			# multiple subsystem values and we could be here
+			# several times in the enclosing loop.
+			# use groupname for first line
+			if [ "$PROCESSED_SUBSYS" != $SUBSYS ]; then
+				echo -n $u >> cgrules/$g
+				# and % for subsequent.
+				u="%" # Needed because of silly cgrules.conf limitations
+				echo $u
+				echo " "$SUBSYS $g/ >> cgrules/$g
+			fi
+		else
+			echo $SUBSYS not mounted. Skipping...
+		fi
+		PROCESSED_SUBSYS=$SUBSYS
+	done
+
+}
+
+function delete {
+	echo Del $1
+}
+
 
 # Enter the loop that waits for changes to files in the groups directory
-inotifywait -q -m --format '%e %f' -e create -e delete -e move -e modify groups | while read line; do
-	read EVENT GROUP <<<$(echo $line)
+inotifywait -q -m --format '%e %w%f' --exclude '\.(disabled)' -e create -e delete -e move -e modify groups | while read line; do
+	read EVENT FILENAME <<<$(echo $line)
 	case $EVENT in
-		CREATE|MOVED_TO)
-			echo Create $GROUP
+		CREATE|MOVED_TO|MODIFIED)
+			create $FILENAME
 			;;
 		DELETE|MOVED_FROM)
-			echo Del $GROUP
+			delete $FILENAME
 			;;
 	esac
-	#echo $EVENT
-	#echo $GROUP
-
 done
 exit 0
 

@@ -64,5 +64,4 @@ for g in $LIST; do
 done
 #cat $TMPGROUP
 mv $TMPGROUP groups/$NAME.conf
-rm $TMPGROUP
 exit 0
