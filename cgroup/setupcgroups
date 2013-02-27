@@ -38,17 +38,6 @@ for f in controllers/*.conf; do
 		echo $VALUE > $CG/$c/catchall/$c.$NAME
 	done
 done
-#exit 0
-# Now remove disabled controllers
-#for f in controllers/*.disabled; do
-#	c="$(basename $f .disabled)"
-#	# Just umount it no goofing around...
-#	umount $CG/$c > /dev/null 2>&1
-#	# This is a little scary considering who this script runs as:
-#	rm -r $CG/$c > /dev/null 2>&1
-#done
-
-#exit 0
 
 # Clean out the cgrules generated confs
 rm cgrules/*  > /dev/null 2>&1
