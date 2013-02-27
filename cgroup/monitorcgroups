@@ -3,13 +3,19 @@
 # parameters based on information in the files created and modified
 # by other scripts. Joseph Santaniello <js@syse.no> 2013-02-13
 
+# First make sure this is only instance of the script running:
+LOCKFILE=/tmp/ourcrazylockfilename
+if [ -e ${LOCKFILE} ] && kill -0 `cat ${LOCKFILE}`; then
+	echo "Instance of ${BASH_SOURCE[0]} already running! Exiting."
+	exit 1
+fi
+# Make sure our lockfile gets rm'ed and claim it.
+trap "rm -f ${LOCKFILE}; exit" INT TERM EXIT
+echo $$ > ${LOCKFILE}
 # cd to where we want to be so subdirs are where we expect.
 cd "$(dirname ${BASH_SOURCE[0]})"
-#FIXME add some sort of lock to ensure only on instance is running
 # Source our common functions
 . common.sh
-
-CG=/sys/fs/cgroup
 
 # Check that there is at least one mounted subsystem
 chk_subsys
@@ -31,5 +37,6 @@ inotifywait -q -m --format '%e %w%f' --exclude '\.(disabled)' -e create -e delet
 	# This is ugly... but we don't have to deal with PID and flaky SIGUSR2.
 	killall cgrulesengd > /dev/null 2>&1; cgrulesengd
 done
-exit 0
 
+# Delete the lockfile
+rm -f ${LOCKFILE}
