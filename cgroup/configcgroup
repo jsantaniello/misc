@@ -6,7 +6,9 @@ usage() {
 [[ -n "$1" ]] || { usage $0; exit 1; }
 
 LIST=`ls generators`
-opts=`echo $LIST | awk '{printf $1 ":,"}'|sed 's/,$//'`
+G=""
+for i in $LIST; do G=$G`echo $i | awk '{printf $1 ":,"}'`; done
+opts=`echo $G |sed 's/,$//'`
 TMPSCRIPT=$(mktemp)
 TMPGROUP=$(mktemp)
 
