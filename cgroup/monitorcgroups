@@ -24,7 +24,7 @@ chk_subsys
 inotifywait -q -m --format '%e %w%f' --exclude '\.(disabled)' -e create -e delete -e move -e modify groups | while read line; do
 	read EVENT FILENAME <<<$(echo $line)
 	case $EVENT in
-		CREATE|MOVED_TO|MODIFIED)
+		CREATE|MOVED_TO|MODIFIED|MODIFY)
 			create $FILENAME
 			;;
 		DELETE|MOVED_FROM)
