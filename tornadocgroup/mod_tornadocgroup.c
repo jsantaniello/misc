@@ -33,7 +33,7 @@ static void tornadocgroup_child_init(apr_pool_t *pool, server_rec *r)
 	int ret = 0;
 	// Initialize libcgroup
 	if ((ret = cgroup_init()) > 0) {
-		ap_log_error(APLOG_MARK, APLOG_ERR, 0, r, "Error initializing libcgroup: %s", cgroup_strerror(ret));
+		ap_log_error(APLOG_MARK, APLOG_ERR, 0, r, "Error %i initializing libcgroup.", ret );
 	}
 	// Create cgroup datastructure
 	else if ((thegroup = cgroup_new_cgroup(cgroup_name)) == NULL) {
