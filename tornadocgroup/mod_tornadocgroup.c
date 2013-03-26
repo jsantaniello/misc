@@ -45,7 +45,7 @@ static void tornadocgroup_child_init(apr_pool_t *pool, server_rec *r)
 	// All that stuff worked, lets move our PID to the group
 	} else {
 		if ((ret = cgroup_attach_task(thegroup)) == 0) {
-			ap_log_error(APLOG_MARK, APLOG_ERR, 0, r, "Sucess attaching task to cgroup: %s", &cgroup_name);
+			ap_log_error(APLOG_MARK, APLOG_NOTICE, 0, r, "Sucess attaching task to cgroup: %s", &cgroup_name);
 		} else {
 			ap_log_error(APLOG_MARK, APLOG_ERR, 0, r, "Failure %i attaching task to cgroup: %s", ret, &cgroup_name);
 		}
