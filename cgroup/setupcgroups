@@ -53,9 +53,14 @@ for f in groups/*.disabled; do
 	delete $f
 done
 
+# Set permissions so Apache2 module running as www-data can assign tasks.
+chgrp -R cgroupadmin $CG
+chmod -R g+w $CG
+
 # And make a new cgrules.conf
 construct_cgrules
 
 # This is ugly... but we don't have to deal with PID and flaky SIGUSR2.
-killall cgrulesengd > /dev/null 2>&1; cgrulesengd
+#killall cgrulesengd > /dev/null 2>&1; cgrulesengd
+service cgred restart
 
