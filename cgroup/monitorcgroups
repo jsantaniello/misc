@@ -35,7 +35,8 @@ inotifywait -q -m --format '%e %w%f' --exclude '\.(disabled)' -e create -e delet
 	construct_cgrules
 	# Restart the cgrulesengd
 	# This is ugly... but we don't have to deal with PID and flaky SIGUSR2.
-	killall cgrulesengd > /dev/null 2>&1; cgrulesengd
+	#killall cgrulesengd > /dev/null 2>&1; cgrulesengd
+	service cgred restart > /dev/null 2>&1
 done
 
 # Delete the lockfile

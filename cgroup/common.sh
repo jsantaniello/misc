@@ -18,6 +18,9 @@ function create {
 			mkdir -p $SUBSYS_DIR/$g
 			# set values
 			echo $VALUE > $SUBSYS_DIR/$g/$SUBSYS.$NAME
+			# Set permissions so Apache2 module running as www-data can assign tasks.
+			chgrp -R cgroupadmin $SUBSYS_DIR
+			chmod -R g+w $SUBSYS_DIR
 			# add to cgrules.conf if we don't already have a
 			# line for this controller. Some controllers have
 			# multiple subsystem values and we could be here
