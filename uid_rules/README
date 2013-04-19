@@ -1,0 +1,5 @@
+The script add_uid_rules.sh should be piped to a shell to make it actually happen.
+
+The Python script should not be run by itself (and won't) as it is used by the shell script.
+
+The delete_uid_rules.sh does an iptables-save and iptables-restore with -v grep in the middle to get rid of the uid rules.
