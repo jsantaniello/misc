@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#uids=[1,2,3,4,5,6,7,8,1000,1001]
+uids=[1,2,3,4,5,6,7,8,1000,1001,1003]
 
 def splitter(rg, parent_name):
 	n = len(rg)

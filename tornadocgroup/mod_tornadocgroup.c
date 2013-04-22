@@ -38,17 +38,8 @@ static int tornadocgroup_handler(request_rec *r)
 	cgroup *thegroup;
 	int ret = 0;
 	cgroup_cfg* cfg = (cgroup_cfg*) ap_get_module_config(r->per_dir_config, &mod_tornadocgroup);
-	if ((ret = cgroup_init()) > 0) {
-		ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Error %i initializing libcgroup.", ret );
-	}
-	// Create cgroup datastructure
-	else if ((thegroup = cgroup_new_cgroup(cfg->cgroup_name)) == NULL) {
+	if ((thegroup = cgroup_new_cgroup(cfg->cgroup_name)) == NULL) {
 		ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Error creating libcgroup datastructure: %s", cfg->cgroup_name);
-	}
-	// Load the kernel cgroup in the datastructure
-	else if ((ret = cgroup_get_cgroup(thegroup)) == ECGROUPNOTEXIST) {
-		ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "libcgroup error %i getting nonexistant cgroup: %s", ret, cfg->cgroup_name);
-		// All that stuff worked, lets move our PID to the group
 	}
 	else {
 		if ((ret = cgroup_attach_task(thegroup)) == 0) {
@@ -76,16 +67,16 @@ static const command_rec tornadocgroup_cmds[] =
 
 static void tornadocgroup_register_hooks(apr_pool_t *p)
 {
+	ap_hook_post_config(cgroup_init, NULL, NULL, APR_HOOK_LAST);
 	ap_hook_handler(tornadocgroup_handler, NULL, NULL, APR_HOOK_FIRST);
 }
-
 
 /* Dispatch list for API hooks */
 module AP_MODULE_DECLARE_DATA mod_tornadocgroup =
 {
 	//module AP_MODULE_DECLARE_DATA tornadocgroup_module = { // IMPORTANT! This line needed by apx2!!
 	STANDARD20_MODULE_STUFF,
-	create_conf,				/* create per-dir    config structures */
+	create_conf,			/* create per-dir    config structures */
 	NULL,				/* merge  per-dir    config structures */
 	NULL,				/* create per-server config structures */
 	NULL,				/* merge  per-server config structures */
