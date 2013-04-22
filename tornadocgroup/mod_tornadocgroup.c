@@ -43,7 +43,7 @@ static int tornadocgroup_handler(request_rec *r)
 	}
 	else {
 		if ((ret = cgroup_attach_task(thegroup)) == 0) {
-			ap_log_rerror(APLOG_MARK, APLOG_NOTICE, 0, r, "Sucess attaching task to cgroup: %s", cfg->cgroup_name);
+			ap_log_rerror(APLOG_MARK, APLOG_INFO, 0, r, "Sucess attaching task to cgroup: %s", cfg->cgroup_name);
 		}
 		else {
 			ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Failure %i attaching task to cgroup: %s", ret, cfg->cgroup_name);
