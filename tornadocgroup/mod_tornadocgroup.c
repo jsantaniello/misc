@@ -38,15 +38,21 @@ static int tornadocgroup_handler(request_rec *r)
 	cgroup *thegroup;
 	int ret = 0;
 	cgroup_cfg* cfg = (cgroup_cfg*) ap_get_module_config(r->per_dir_config, &mod_tornadocgroup);
+	// Create data structure.
 	if ((thegroup = cgroup_new_cgroup(cfg->cgroup_name)) == NULL) {
 		ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Error creating libcgroup datastructure: %s", cfg->cgroup_name);
 	}
+	// Load kernel cgroup into the structure.
+	else if  ((ret = cgroup_get_cgroup(thegroup)) == ECGROUPNOTEXIST) {
+		ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "%s : %s", cgroup_strerror(ret), cfg->cgroup_name);
+	}
+	// Move current task to cgroup.
 	else {
 		if ((ret = cgroup_attach_task(thegroup)) == 0) {
 			ap_log_rerror(APLOG_MARK, APLOG_INFO, 0, r, "Sucess attaching task to cgroup: %s", cfg->cgroup_name);
 		}
 		else {
-			ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Failure %i attaching task to cgroup: %s", ret, cfg->cgroup_name);
+			ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "Error attaching task to cgroup: %s. Reason: %s.", cfg->cgroup_name, cgroup_strerror(ret));
 		}
 	}
 	// Now return declined to allow apache to continue with request now that it's been moved into cgroup.
